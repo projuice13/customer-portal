@@ -30,8 +30,8 @@ export function AdminImageManager({ slug, initialImages }: Props) {
       const res = await fetch(`/api/admin/images/${slug}`);
       const data = await res.json();
       setImages(data.images);
-    } catch {
-      setError("Upload failed. Please try again.");
+    } catch (err) {
+      setError(`Upload failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";

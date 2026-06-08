@@ -29,16 +29,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
   const pathname = `products/${slug}/${Date.now()}-${safeName}`;
 
-  const blob = await put(pathname, file, { access: "public", addRandomSuffix: false });
+  try {
+    const blob = await put(pathname, file, { access: "public", addRandomSuffix: false });
 
-  await addProductImage(slug, {
-    url: blob.url,
-    pathname: blob.pathname,
-    filename: file.name,
-    label,
-  });
+    await addProductImage(slug, {
+      url: blob.url,
+      pathname: blob.pathname,
+      filename: file.name,
+      label,
+    });
 
-  return NextResponse.json({ success: true, url: blob.url });
+    return NextResponse.json({ success: true, url: blob.url });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 // DELETE — remove an image (?url=...)
