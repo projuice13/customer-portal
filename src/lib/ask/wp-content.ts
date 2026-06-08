@@ -64,8 +64,46 @@ async function wpFetch<T>(path: string, params: Record<string, string>): Promise
   }
 }
 
+// Pages that need to be fetched as fully-rendered HTML because their content
+// lives in Elementor accordions/widgets that the REST API can't return properly.
+const SCRAPE_PAGES: { slug: string; url: string; title: string }[] = [
+  { slug: "delivery-information", url: "https://www.projuice.co.uk/delivery-information/", title: "Delivery Information" },
+  { slug: "frequently-asked-questions", url: "https://www.projuice.co.uk/frequently-asked-questions/", title: "Frequently Asked Questions" },
+  { slug: "about-us", url: "https://www.projuice.co.uk/about-us/", title: "About Us" },
+  { slug: "contact-us", url: "https://www.projuice.co.uk/contact-us/", title: "Contact Us" },
+];
+
+async function scrapePageHtml(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      next: { revalidate: 86400 },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; ProJuice-Portal/1.0)" },
+    });
+    if (!res.ok) return "";
+    const html = await res.text();
+    // Extract just the main content area to avoid menus/footers etc
+    // Strategy: find <main> or <article> content if present, else fall back to body
+    let target = html;
+    const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+    if (mainMatch) target = mainMatch[1];
+    else {
+      const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      if (bodyMatch) target = bodyMatch[1];
+    }
+    // Remove script and style tags entirely
+    target = target.replace(/<script[\s\S]*?<\/script>/gi, " ");
+    target = target.replace(/<style[\s\S]*?<\/style>/gi, " ");
+    target = target.replace(/<nav[\s\S]*?<\/nav>/gi, " ");
+    target = target.replace(/<footer[\s\S]*?<\/footer>/gi, " ");
+    target = target.replace(/<header[\s\S]*?<\/header>/gi, " ");
+    return stripHtml(target);
+  } catch {
+    return "";
+  }
+}
+
 export async function fetchWordPressContent(): Promise<WpItem[]> {
-  const [rawPosts, rawPages] = await Promise.all([
+  const [rawPosts, rawPages, scrapedPages] = await Promise.all([
     wpFetch<{ title: { rendered: string }; content: { rendered: string }; slug: string; link: string }>(
       "/posts",
       { per_page: "100", _fields: "title,content,slug,link", status: "publish" }
@@ -74,9 +112,18 @@ export async function fetchWordPressContent(): Promise<WpItem[]> {
       "/pages",
       { per_page: "100", _fields: "title,content,slug,link", status: "publish" }
     ),
+    Promise.all(
+      SCRAPE_PAGES.map(async (page) => ({
+        title: page.title,
+        slug: page.slug,
+        url: page.url,
+        content: await scrapePageHtml(page.url),
+      }))
+    ),
   ]);
 
   const items: WpItem[] = [];
+  const scrapedSlugs = new Set(scrapedPages.filter((p) => p.content.length > 0).map((p) => p.slug));
 
   for (const post of rawPosts) {
     const content = stripHtml(post.content?.rendered ?? "");
@@ -92,6 +139,8 @@ export async function fetchWordPressContent(): Promise<WpItem[]> {
 
   for (const page of rawPages) {
     if (SKIP_PAGE_SLUGS.has(page.slug)) continue;
+    // Skip pages where we have a scraped version with better content
+    if (scrapedSlugs.has(page.slug)) continue;
     const content = stripHtml(page.content?.rendered ?? "");
     if (content.length < 150) continue;
     items.push({
@@ -100,6 +149,18 @@ export async function fetchWordPressContent(): Promise<WpItem[]> {
       url: page.link,
       type: "page",
       slug: page.slug,
+    });
+  }
+
+  // Add the fully-scraped pages (these always win over the REST API version)
+  for (const scraped of scrapedPages) {
+    if (scraped.content.length < 150) continue;
+    items.push({
+      title: scraped.title,
+      content: scraped.content,
+      url: scraped.url,
+      type: "page",
+      slug: scraped.slug,
     });
   }
 

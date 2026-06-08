@@ -13,7 +13,7 @@ export interface WebsiteSearchResult {
 }
 
 // How many characters of content to include per item in the context window
-const SNIPPET_LENGTH = 1200;
+const SNIPPET_LENGTH = 3000;
 
 export async function searchWebsite(
   tokens: string[]
