@@ -6,6 +6,7 @@ export async function blobPutText(pathname: string, text: string) {
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
+    cacheControlMaxAge: 0, // CRITICAL: prevent CDN caching of the index file
   });
 }
 
