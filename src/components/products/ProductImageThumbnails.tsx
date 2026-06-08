@@ -40,10 +40,11 @@ export function ProductImageThumbnails({ slug }: Props) {
     <section aria-labelledby="product-images-heading">
       <h3
         id="product-images-heading"
-        className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5"
+        className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
       >
         Images
       </h3>
+      <p className="text-xs text-slate-400 mb-2.5">Click on an image below to download in full size</p>
       <div className="flex flex-wrap gap-2">
         {images.map((img) => (
           <a
