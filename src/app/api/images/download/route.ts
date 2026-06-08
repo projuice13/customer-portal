@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { r2PresignedDownload } from "@/lib/r2";
 
-// Public endpoint — generates a short-lived presigned download URL
+// Redirects to the public Vercel Blob URL with a download filename header
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-  const filename = searchParams.get("filename") ?? key?.split("/").pop() ?? "image.jpg";
+  const url = searchParams.get("url");
+  const filename = searchParams.get("filename") ?? "image.jpg";
 
-  if (!key) return NextResponse.json({ error: "key is required" }, { status: 400 });
+  if (!url) return NextResponse.json({ error: "url is required" }, { status: 400 });
 
-  // Only allow keys under products/
-  if (!key.startsWith("products/")) {
-    return NextResponse.json({ error: "Invalid key" }, { status: 400 });
+  // Only allow Vercel Blob URLs
+  if (!url.includes("vercel-storage.com") && !url.includes("public.blob.vercel-storage.com")) {
+    return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
   }
 
-  const url = await r2PresignedDownload(key, filename);
-  return NextResponse.redirect(url);
+  return NextResponse.redirect(url, {
+    headers: {
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    },
+  });
 }

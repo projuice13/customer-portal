@@ -1,29 +1,36 @@
 /**
- * Product image index stored as products/index.json in R2.
+ * Product image index stored as products/index.json in Vercel Blob.
  * Shape: { [slug]: ProductImageEntry[] }
  */
 
-import { r2GetText, r2Put } from "./r2";
+import { blobPutText } from "./blob";
 
 export interface ProductImageEntry {
-  key: string;       // R2 object key, e.g. "products/mango-smoothie/hero.jpg"
-  filename: string;  // original filename for download
-  label?: string;    // optional display label
+  url: string;      // public Vercel Blob URL
+  pathname: string; // blob pathname, used for deletion
+  filename: string; // original filename, used as download name
+  label?: string;
   order: number;
 }
 
 type ImageIndex = Record<string, ProductImageEntry[]>;
 
-const INDEX_KEY = "products/index.json";
+const INDEX_PATHNAME = "products/index.json";
 
 export async function getImageIndex(): Promise<ImageIndex> {
-  const text = await r2GetText(INDEX_KEY);
-  if (!text) return {};
+  const indexUrl = process.env.BLOB_INDEX_URL;
+  if (!indexUrl) return {};
   try {
-    return JSON.parse(text) as ImageIndex;
+    const res = await fetch(indexUrl, { next: { revalidate: 0 } });
+    if (!res.ok) return {};
+    return await res.json() as ImageIndex;
   } catch {
     return {};
   }
+}
+
+async function saveIndex(index: ImageIndex) {
+  await blobPutText(INDEX_PATHNAME, JSON.stringify(index, null, 2));
 }
 
 export async function getProductImages(slug: string): Promise<ProductImageEntry[]> {
@@ -34,7 +41,7 @@ export async function getProductImages(slug: string): Promise<ProductImageEntry[
 export async function saveProductImages(slug: string, entries: ProductImageEntry[]) {
   const index = await getImageIndex();
   index[slug] = entries;
-  await r2Put(INDEX_KEY, Buffer.from(JSON.stringify(index, null, 2)), "application/json");
+  await saveIndex(index);
 }
 
 export async function addProductImage(slug: string, entry: Omit<ProductImageEntry, "order">) {
@@ -42,11 +49,11 @@ export async function addProductImage(slug: string, entry: Omit<ProductImageEntr
   const existing = index[slug] ?? [];
   const order = existing.length > 0 ? Math.max(...existing.map((e) => e.order)) + 1 : 0;
   index[slug] = [...existing, { ...entry, order }];
-  await r2Put(INDEX_KEY, Buffer.from(JSON.stringify(index, null, 2)), "application/json");
+  await saveIndex(index);
 }
 
-export async function removeProductImage(slug: string, key: string) {
+export async function removeProductImage(slug: string, url: string) {
   const index = await getImageIndex();
-  index[slug] = (index[slug] ?? []).filter((e) => e.key !== key);
-  await r2Put(INDEX_KEY, Buffer.from(JSON.stringify(index, null, 2)), "application/json");
+  index[slug] = (index[slug] ?? []).filter((e) => e.url !== url);
+  await saveIndex(index);
 }

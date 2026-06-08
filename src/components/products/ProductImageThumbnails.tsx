@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, ImageIcon } from "lucide-react";
+import { Download } from "lucide-react";
 import type { ProductImageEntry } from "@/lib/product-images";
 
 interface Props {
@@ -34,7 +34,7 @@ export function ProductImageThumbnails({ slug }: Props) {
   if (images.length === 0) return null;
 
   const downloadUrl = (img: ProductImageEntry) =>
-    `/api/images/download?key=${encodeURIComponent(img.key)}&filename=${encodeURIComponent(img.filename)}`;
+    `/api/images/download?url=${encodeURIComponent(img.url)}&filename=${encodeURIComponent(img.filename)}`;
 
   return (
     <section aria-labelledby="product-images-heading">
@@ -47,7 +47,7 @@ export function ProductImageThumbnails({ slug }: Props) {
       <div className="flex flex-wrap gap-2">
         {images.map((img) => (
           <a
-            key={img.key}
+            key={img.url}
             href={downloadUrl(img)}
             download
             title={`Download ${img.label ?? img.filename}`}
@@ -55,7 +55,7 @@ export function ProductImageThumbnails({ slug }: Props) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={downloadUrl(img)}
+              src={img.url}
               alt={img.label ?? img.filename}
               className="h-full w-full object-cover"
             />
