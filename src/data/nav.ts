@@ -21,14 +21,14 @@ export const navItems: NavItem[] = [
     icon: "MessageCircle",
     beta: true,
     description: "Ask a question about our products or services",
-    image: "/12.jpg",
+    image: "/13.png",
   },
   {
     label: "Profit Calculator",
     href: "/profit-calculator",
     icon: "Calculator",
     description: "Calculate selling price, margin and profit",
-    image: "/13.png",
+    image: "/15.jpg",
   },
   {
     label: "Postcode Checker",
