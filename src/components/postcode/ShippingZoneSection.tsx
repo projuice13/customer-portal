@@ -22,9 +22,9 @@ export function ShippingZoneSection({ zone, index }: { zone: Zone; index: number
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="overflow-hidden rounded-lg border border-slate-200"
+      className="overflow-hidden rounded-lg border border-slate-200 bg-white"
     >
-      <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
+      <div className="flex items-center gap-2 border-b border-slate-100 bg-white px-4 py-3">
         <MapPin className="h-4 w-4 text-slate-400" />
         <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           {zone.name}
