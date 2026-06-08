@@ -130,7 +130,8 @@ function VisualBreakdown({
   grossProfit: number;
   sellingPrice: number;
 }) {
-  // Build slice data: every cost row + (if positive) gross profit
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
   const costSlices = rows
     .filter((r) => r.cost > 0)
     .map((r, i) => ({
@@ -156,9 +157,9 @@ function VisualBreakdown({
     );
   }
 
-  // SVG pie geometry
-  const size = 200;
-  const radius = 80;
+  // Make the pie large so it fills the box
+  const size = 360;
+  const radius = 150;
   const cx = size / 2;
   const cy = size / 2;
   let cumulative = 0;
@@ -175,7 +176,6 @@ function VisualBreakdown({
 
     const largeArc = s.value / total > 0.5 ? 1 : 0;
 
-    // Special case: single full slice
     const d =
       slices.length === 1
         ? `M ${cx - radius} ${cy} A ${radius} ${radius} 0 1 1 ${cx + radius} ${cy} A ${radius} ${radius} 0 1 1 ${cx - radius} ${cy} Z`
@@ -184,38 +184,59 @@ function VisualBreakdown({
     return { d, colour: s.colour, label: s.label, value: s.value, pct: (s.value / total) * 100 };
   });
 
+  const hovered = hoverIndex !== null ? paths[hoverIndex] : null;
+
   return (
     <div className="p-4">
-      {/* Pie */}
-      <div className="flex justify-center mb-4">
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="Cost breakdown pie chart">
+      <div className="relative w-full">
+        <svg
+          viewBox={`0 0 ${size} ${size}`}
+          className="w-full h-auto block"
+          aria-label="Cost breakdown pie chart"
+        >
           {paths.map((p, i) => (
-            <path key={i} d={p.d} fill={p.colour} stroke="white" strokeWidth="2">
-              <title>{`${p.label}: ${formatPence(p.value)} (${p.pct.toFixed(1)}%)`}</title>
-            </path>
+            <path
+              key={i}
+              d={p.d}
+              fill={p.colour}
+              stroke="white"
+              strokeWidth="2"
+              className="transition-opacity duration-150 cursor-pointer"
+              style={{
+                opacity: hoverIndex === null || hoverIndex === i ? 1 : 0.35,
+              }}
+              onMouseEnter={() => setHoverIndex(i)}
+              onMouseLeave={() => setHoverIndex(null)}
+            />
           ))}
+          {/* Inner circle creates the donut hole for centre info */}
+          <circle cx={cx} cy={cy} r={radius * 0.55} fill="white" className="pointer-events-none" />
         </svg>
-      </div>
 
-      {/* Legend */}
-      <ul className="space-y-1.5">
-        {paths.map((p, i) => (
-          <li key={i} className="flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className="h-2.5 w-2.5 rounded-sm flex-shrink-0"
-                style={{ backgroundColor: p.colour }}
-                aria-hidden="true"
-              />
-              <span className="text-slate-700 truncate">{p.label}</span>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0 tabular-nums">
-              <span className="text-slate-500 font-medium">{formatPence(p.value)}</span>
-              <span className="text-slate-400 w-12 text-right">{p.pct.toFixed(1)}%</span>
-            </div>
-          </li>
-        ))}
-      </ul>
+        {/* Centre overlay shows hovered slice info */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="text-center px-4">
+            {hovered ? (
+              <>
+                <p
+                  className="text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: hovered.colour }}
+                >
+                  {hovered.label}
+                </p>
+                <p className="text-2xl font-bold text-slate-900 mt-1 tabular-nums">
+                  {formatPence(hovered.value)}
+                </p>
+                <p className="text-sm text-slate-500 tabular-nums">
+                  {hovered.pct.toFixed(1)}% of total
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-slate-400">Hover a slice for details</p>
+            )}
+          </div>
+        </div>
+      </div>
 
       {grossProfit < 0 && (
         <p className="mt-4 rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-700">
