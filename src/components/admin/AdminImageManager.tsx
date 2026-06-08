@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { upload } from "@vercel/blob/client";
 import { Upload, Trash2, GripVertical, ImageIcon } from "lucide-react";
 import type { ProductImageEntry } from "@/lib/product-images";
 
@@ -66,11 +65,10 @@ export function AdminImageManager({ slug, initialImages }: Props) {
           `Uploading ${i + 1}/${files.length} — ${originalKb}KB → ${compressedKb}KB`
         );
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
-        const pathname = `products/${slug}/${Date.now()}-${safeName}`;
-        await upload(pathname, compressed, {
-          access: "public",
-          handleUploadUrl: `/api/admin/images/${slug}/upload-token`,
-        });
+        const form = new FormData();
+        form.append("file", compressed, safeName);
+        const res = await fetch(`/api/admin/images/${slug}`, { method: "POST", body: form });
+        if (!res.ok) throw new Error((await res.json()).error ?? "Upload failed");
       }
       setUploadStatus("Refreshing…");
       const res = await fetch(`/api/admin/images/${slug}`);
