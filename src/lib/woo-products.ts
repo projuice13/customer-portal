@@ -59,6 +59,7 @@ function isExcluded(product: WcProduct): boolean {
     "promo material", "promotional material", "display stand",
     "shelf talker", "window sticker",
     "200 pack of pet cups",
+    "mixing juice", "frozen yogurt", "frozen yoghurt",
   ];
   if (excludedTerms.some((t) => name.includes(t))) return true;
 
