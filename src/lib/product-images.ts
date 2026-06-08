@@ -21,7 +21,9 @@ export async function getImageIndex(): Promise<ImageIndex> {
   try {
     const indexUrl = await blobFindUrl(INDEX_PATHNAME);
     if (!indexUrl) return {};
-    const res = await fetch(indexUrl, { cache: "no-store" });
+    // Append timestamp to bypass CDN cache on every read
+    const bustUrl = `${indexUrl}?t=${Date.now()}`;
+    const res = await fetch(bustUrl, { cache: "no-store" });
     if (!res.ok) return {};
     return await res.json() as ImageIndex;
   } catch {
