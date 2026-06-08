@@ -5,6 +5,7 @@ import type { Product } from "@/lib/types";
 import { AllergenBadgeList } from "./AllergenBadgeList";
 import { IngredientsList } from "./IngredientsList";
 import { ResourceButton } from "./ResourceButton";
+import { ProductImageThumbnails } from "./ProductImageThumbnails";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -98,6 +99,9 @@ export function ProductDetailPanel({ product, className }: ProductDetailPanelPro
           <h2 className="text-lg font-semibold text-slate-900">{product.title}</h2>
           <p className="mt-1 text-sm text-slate-500">{product.shortDescription}</p>
         </div>
+
+        {/* Product images */}
+        <ProductImageThumbnails slug={product.slug} />
 
         {/* Downloads & assets */}
         {product.resources.length > 0 && (

@@ -1,21 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const COOKIE_NAME = "portal_product_auth";
-const UNLOCK_PATH = "/product-info/unlock";
+const PRODUCT_COOKIE = "portal_product_auth";
+const ADMIN_COOKIE = "portal_admin_auth";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Only protect /product-info routes (excluding the unlock page itself)
+  // ── Admin protection ──────────────────────────────────────────────────────
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
+    const authed = request.cookies.get(ADMIN_COOKIE)?.value === "1";
+    if (!authed) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // ── Product Info protection ───────────────────────────────────────────────
   if (
     pathname.startsWith("/product-info") &&
-    !pathname.startsWith(UNLOCK_PATH)
+    !pathname.startsWith("/product-info/unlock")
   ) {
-    const authCookie = request.cookies.get(COOKIE_NAME);
-    if (!authCookie || authCookie.value !== "1") {
+    const authed = request.cookies.get(PRODUCT_COOKIE)?.value === "1";
+    if (!authed) {
       const url = request.nextUrl.clone();
-      url.pathname = UNLOCK_PATH;
-      // Preserve the originally requested URL so we can redirect back after unlock
+      url.pathname = "/product-info/unlock";
       url.searchParams.set("from", pathname + (request.nextUrl.search || ""));
       return NextResponse.redirect(url);
     }
@@ -25,5 +34,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/product-info/:path*"],
+  matcher: ["/product-info/:path*", "/admin/:path*"],
 };
