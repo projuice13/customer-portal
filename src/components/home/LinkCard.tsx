@@ -31,6 +31,7 @@ interface LinkCardProps {
   description: string;
   href: string;
   icon: string;
+  image?: string;
   protected?: boolean;
   comingSoon?: boolean;
 }
@@ -40,28 +41,47 @@ export function LinkCard({
   description,
   href,
   icon,
+  image = "/smoothie.jpg",
   protected: isProtected,
   comingSoon,
 }: LinkCardProps) {
   const Icon = iconMap[icon] ?? Package;
 
+  const cardBase = cn(
+    "relative overflow-hidden rounded-xl",
+    "min-h-[450px] flex flex-col justify-end",
+    "bg-slate-800"
+  );
+
+  const bgStyle = {
+    backgroundImage: `url(${image})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  };
+
+  const overlay = (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0"
+      style={{
+        background:
+          "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%)",
+      }}
+    />
+  );
+
   if (comingSoon) {
     return (
-      <div
-        className="relative flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 opacity-60 cursor-default select-none"
-        aria-label={`${title} — coming soon`}
-      >
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100">
-          <Icon className="h-4.5 w-4.5 text-slate-400" aria-hidden="true" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-slate-500">{title}</p>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-400">
+      <div className={cn(cardBase, "opacity-60 cursor-default select-none")} style={bgStyle} aria-label={`${title} — coming soon`}>
+        {overlay}
+        <div className="relative z-10 p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-sm font-semibold text-white">{title}</p>
+            <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium text-white/80">
               Soon
             </span>
           </div>
-          <p className="mt-0.5 text-sm text-slate-400">{description}</p>
+          <p className="text-sm text-white/70">{description}</p>
         </div>
       </div>
     );
@@ -71,33 +91,28 @@ export function LinkCard({
     <Link
       href={href}
       className={cn(
-        "group relative flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5",
-        "hover:border-teal-300 hover:shadow-md hover:shadow-teal-50",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
-        "transition-all duration-150"
+        cardBase,
+        "group",
+        "hover:shadow-xl hover:shadow-black/20",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2",
+        "transition-all duration-200"
       )}
+      style={bgStyle}
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 group-hover:bg-teal-100 transition-colors">
-        <Icon className="h-[18px] w-[18px] text-teal-600" aria-hidden="true" />
-      </div>
+      {overlay}
 
-      <div className="flex-1">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-semibold text-slate-900 group-hover:text-teal-700 transition-colors">
-            {title}
-          </p>
+      <div className="relative z-10 p-5">
+        <div className="flex items-center gap-1.5 mb-1">
+          <p className="text-base font-semibold text-white">{title}</p>
           {isProtected && (
-            <Lock
-              className="h-3 w-3 text-slate-400"
-              aria-label="Password protected"
-            />
+            <Lock className="h-3.5 w-3.5 text-white/70" aria-label="Password protected" />
           )}
         </div>
-        <p className="mt-0.5 text-sm text-slate-500">{description}</p>
+        <p className="text-sm text-white/80">{description}</p>
       </div>
 
       <ArrowRight
-        className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"
+        className="absolute right-4 bottom-5 h-4 w-4 text-white/50 group-hover:text-white group-hover:translate-x-0.5 transition-all z-10"
         aria-hidden="true"
       />
     </Link>
