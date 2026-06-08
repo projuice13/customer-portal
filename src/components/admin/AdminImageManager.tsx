@@ -71,11 +71,9 @@ export function AdminImageManager({ slug, initialImages }: Props) {
       const form = new FormData();
       compressed.forEach(({ blob, safeName }) => form.append("file", blob, safeName));
       const res = await fetch(`/api/admin/images/${slug}`, { method: "POST", body: form });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Upload failed");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
 
-      setUploadStatus("Refreshing…");
-      const listRes = await fetch(`/api/admin/images/${slug}`);
-      const data = await listRes.json();
       setImages(data.images);
       setUploadStatus("");
     } catch (err) {

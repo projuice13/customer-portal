@@ -47,7 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { blobPutText } = await import("@/lib/blob");
     await blobPutText("products/index.json", JSON.stringify(index, null, 2));
 
-    return NextResponse.json({ success: true, uploaded: uploaded.length });
+    return NextResponse.json({ success: true, uploaded: uploaded.length, images: index[slug] });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });
