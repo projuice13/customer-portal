@@ -99,9 +99,6 @@ export function ProductDetailPanel({ product, loading = false, className }: Prod
             <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", categoryClass)}>
               {product.category}
             </span>
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
-              {typeLabels[product.productType] ?? product.productType}
-            </span>
           </div>
           <h2 className="text-lg font-semibold text-slate-900">{product.title}</h2>
           <p className="mt-1 text-sm text-slate-500">{product.shortDescription}</p>
