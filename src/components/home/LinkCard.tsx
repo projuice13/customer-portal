@@ -78,7 +78,7 @@ export function LinkCard({
         {overlay}
         <div className="relative z-10 p-5">
           <div className="flex items-center gap-2 mb-1">
-            <p className="text-sm font-semibold text-white">{title}</p>
+            <p className="text-[20px] font-bold uppercase tracking-wide text-white">{title}</p>
             <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium text-white/80">
               Soon
             </span>
@@ -104,10 +104,10 @@ export function LinkCard({
       {overlay}
 
       <div className="relative z-10 p-5">
-        <div className="flex items-center gap-1.5 mb-1">
-          <p className="text-base font-semibold text-white">{title}</p>
+        <div className="flex items-center gap-2 mb-1">
+          <p className="text-[20px] font-bold uppercase tracking-wide text-white">{title}</p>
           {isProtected && (
-            <Lock className="h-3.5 w-3.5 text-white/70" aria-label="Password protected" />
+            <Lock className="h-4 w-4 text-white/70" aria-label="Password protected" />
           )}
           {beta && (
             <span className="rounded-full bg-amber-400/90 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
