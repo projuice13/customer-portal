@@ -12,7 +12,7 @@ export async function wcFetch<T>(
   const key = process.env.WOOCOMMERCE_KEY;
   const secret = process.env.WOOCOMMERCE_SECRET;
 
-  if (!baseUrl) throw new Error("WOOCOMMERCE_URL is not set");
+  if (!baseUrl) return [] as unknown as T;
 
   const credentials =
     key && secret

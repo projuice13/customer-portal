@@ -3,6 +3,8 @@ import { fetchPortalProducts } from "@/lib/woo-products";
 import { ProductInfoClient } from "@/components/products/ProductInfoClient";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Product Info" };
 
 export default async function ProductInfoPage() {
