@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Upload, Trash2, GripVertical, ImageIcon } from "lucide-react";
 import type { ProductImageEntry } from "@/lib/product-images";
+import { cn } from "@/lib/utils";
 
 const MAX_PX = 2000;
 const JPEG_QUALITY = 0.82;
@@ -49,6 +50,8 @@ export function AdminImageManager({ slug, initialImages }: Props) {
   const [uploadStatus, setUploadStatus] = useState("");
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const dragIndex = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -99,6 +102,41 @@ export function AdminImageManager({ slug, initialImages }: Props) {
     }
   }
 
+  function handleDragStart(index: number) {
+    dragIndex.current = index;
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    setDragOverIndex(index);
+  }
+
+  function handleDrop(e: React.DragEvent, dropIndex: number) {
+    e.preventDefault();
+    const from = dragIndex.current;
+    if (from === null || from === dropIndex) { setDragOverIndex(null); return; }
+
+    const reordered = [...images];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(dropIndex, 0, moved);
+    const withOrder = reordered.map((img, i) => ({ ...img, order: i }));
+    setImages(withOrder);
+    setDragOverIndex(null);
+    dragIndex.current = null;
+
+    // Persist to server
+    fetch(`/api/admin/images/${slug}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: withOrder.map((img) => img.url) }),
+    }).catch(() => setError("Failed to save new order. Please reload and try again."));
+  }
+
+  function handleDragEnd() {
+    dragIndex.current = null;
+    setDragOverIndex(null);
+  }
+
   const downloadUrl = (img: ProductImageEntry) =>
     `/api/images/download?url=${encodeURIComponent(img.url)}&filename=${encodeURIComponent(img.filename)}`;
 
@@ -136,9 +174,22 @@ export function AdminImageManager({ slug, initialImages }: Props) {
         </div>
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
-          {images.map((img) => (
-            <div key={img.url} className="flex items-center gap-3 px-4 py-3">
-              <GripVertical className="h-4 w-4 text-slate-300 flex-shrink-0" />
+          {images.map((img, index) => (
+            <div
+              key={img.url}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 transition-colors",
+                dragOverIndex === index && dragIndex.current !== index
+                  ? "bg-teal-50 border-t-2 border-teal-400"
+                  : "bg-white"
+              )}
+            >
+              <GripVertical className="h-4 w-4 text-slate-300 flex-shrink-0 cursor-grab active:cursor-grabbing" />
               <a
                 href={downloadUrl(img)}
                 target="_blank"
