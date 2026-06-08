@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const pathname = `products/${slug}/${Date.now()}-${safeName}`;
 
   try {
-    const blob = await put(pathname, file, { access: "public", addRandomSuffix: false });
+    const blob = await put(pathname, file, { access: "public", addRandomSuffix: true });
 
     await addProductImage(slug, {
       url: blob.url,

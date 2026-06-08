@@ -3,7 +3,7 @@
  * Shape: { [slug]: ProductImageEntry[] }
  */
 
-import { blobPutText } from "./blob";
+import { blobPutText, blobFindUrl } from "./blob";
 
 export interface ProductImageEntry {
   url: string;      // public Vercel Blob URL
@@ -18,10 +18,10 @@ type ImageIndex = Record<string, ProductImageEntry[]>;
 const INDEX_PATHNAME = "products/index.json";
 
 export async function getImageIndex(): Promise<ImageIndex> {
-  const indexUrl = process.env.BLOB_INDEX_URL;
-  if (!indexUrl) return {};
   try {
-    const res = await fetch(indexUrl, { next: { revalidate: 0 } });
+    const indexUrl = await blobFindUrl(INDEX_PATHNAME);
+    if (!indexUrl) return {};
+    const res = await fetch(indexUrl, { cache: "no-store" });
     if (!res.ok) return {};
     return await res.json() as ImageIndex;
   } catch {
