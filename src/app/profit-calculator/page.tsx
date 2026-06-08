@@ -155,19 +155,17 @@ export default function ProfitCalculatorPage() {
               ))}
             </div>
 
-            {/* Add row (custom only) */}
-            {activePresetId === "custom" && (
-              <div className="px-4 pb-3 pt-1">
-                <button
-                  type="button"
-                  onClick={handleAddRow}
-                  className="flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
-                >
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  Add item
-                </button>
-              </div>
-            )}
+            {/* Add row */}
+            <div className="px-4 pb-3 pt-1">
+              <button
+                type="button"
+                onClick={handleAddRow}
+                className="flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Add item
+              </button>
+            </div>
 
             {/* Selling price row */}
             <div className="flex items-center gap-2 border-t border-slate-200 bg-slate-50 px-4 py-3">

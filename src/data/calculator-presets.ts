@@ -14,8 +14,6 @@ export const calculatorPresets: CalculatorPreset[] = [
       { id: cid(), label: "Lid", cost: 4, editable: false, removable: false },
       { id: cid(), label: "Straw", cost: 3, editable: false, removable: false },
       { id: cid(), label: "Milk (200ml)", cost: 20, editable: false, removable: true },
-      { id: cid(), label: "Fresh fruit add-in", cost: 25, editable: false, removable: true },
-      { id: cid(), label: "Labour (est.)", cost: 30, editable: false, removable: true },
     ],
   },
   {
@@ -29,7 +27,6 @@ export const calculatorPresets: CalculatorPreset[] = [
       { id: cid(), label: "Straw", cost: 3, editable: false, removable: false },
       { id: cid(), label: "Milk (300ml)", cost: 30, editable: false, removable: false },
       { id: cid(), label: "Topping / extras", cost: 15, editable: false, removable: true },
-      { id: cid(), label: "Labour (est.)", cost: 30, editable: false, removable: true },
     ],
   },
   {
