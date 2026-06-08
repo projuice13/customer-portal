@@ -13,7 +13,7 @@ export const calculatorPresets: CalculatorPreset[] = [
       { id: cid(), label: "Cup (12oz)", cost: 12, editable: false, removable: false },
       { id: cid(), label: "Lid", cost: 4, editable: false, removable: false },
       { id: cid(), label: "Straw", cost: 3, editable: false, removable: false },
-      { id: cid(), label: "Milk (200ml)", cost: 20, editable: false, removable: true },
+      { id: cid(), label: "Juice (200-250ml)", cost: 20, editable: false, removable: true },
     ],
   },
   {
