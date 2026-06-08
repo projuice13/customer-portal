@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, RefreshCw, CheckCircle, AlertCircle, PackageX } from "lucide-react";
+import { Search, AlertCircle, PackageX } from "lucide-react";
 import { ShippingZoneSection } from "@/components/postcode/ShippingZoneSection";
 import type { ShippingMethod } from "@/components/postcode/ShippingMethodCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const UK_POSTCODE_RE = /^[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}$/i;
 const LS_KEY_FETCHED_AT = "pj_shipping_fetched_at";
-const LS_KEY_ZONE_COUNT = "pj_shipping_zone_count";
 
 function formatPostcode(postcode: string): string {
   const clean = postcode.replace(/\s+/g, "").toUpperCase();
@@ -32,50 +31,10 @@ interface ShippingResponse {
   error?: string;
 }
 
-type FetchState = "idle" | "loading" | "done" | "error";
-
-function formatFetchedAt(iso: string): string {
-  const d = new Date(iso);
-  const diffMins = Math.floor((Date.now() - d.getTime()) / 60000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-}
-
-function DataStatusDot({ fetchedAt }: { fetchedAt: string | null }) {
-  if (!fetchedAt) {
-    return (
-      <div className="flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full bg-amber-400" />
-        <span className="text-xs text-amber-600">No data loaded — click Refresh</span>
-      </div>
-    );
-  }
-  const isStale = (Date.now() - new Date(fetchedAt).getTime()) / 3600000 > 24;
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className={`h-2 w-2 rounded-full ${isStale ? "bg-amber-400" : "bg-green-400"}`} />
-      <span className={`text-xs ${isStale ? "text-amber-600" : "text-slate-400"}`}>
-        Shipping data updated {formatFetchedAt(fetchedAt)}
-      </span>
-    </div>
-  );
-}
-
 export default function PostcodeCheckerPage() {
   const [searchInput, setSearchInput] = useState("");
   const [activePostcode, setActivePostcode] = useState("");
   const [validationError, setValidationError] = useState("");
-  const [fetchState, setFetchState] = useState<FetchState>("idle");
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [lastFetchedAt, setLastFetchedAt] = useState<string | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(LS_KEY_FETCHED_AT);
-    if (stored) setLastFetchedAt(stored);
-  }, []);
 
   const { data, isLoading, isError, error } = useQuery<ShippingResponse>({
     queryKey: ["shipping", activePostcode],
@@ -84,13 +43,6 @@ export default function PostcodeCheckerPage() {
     enabled: activePostcode.length > 0,
     staleTime: 5 * 60 * 1000,
   });
-
-  useEffect(() => {
-    if (data?.fetched_at) {
-      setLastFetchedAt(data.fetched_at);
-      localStorage.setItem(LS_KEY_FETCHED_AT, data.fetched_at);
-    }
-  }, [data?.fetched_at]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,28 +53,6 @@ export default function PostcodeCheckerPage() {
     }
     setValidationError("");
     setActivePostcode(formatPostcode(clean));
-  };
-
-  const handleRefresh = async () => {
-    setFetchState("loading");
-    setFetchError(null);
-    try {
-      const res = await fetch("/api/postcode-checker", { method: "POST" });
-      const json = await res.json();
-      if (res.ok && json.fetched_at) {
-        setLastFetchedAt(json.fetched_at);
-        localStorage.setItem(LS_KEY_FETCHED_AT, json.fetched_at);
-        if (json.zones_loaded) localStorage.setItem(LS_KEY_ZONE_COUNT, String(json.zones_loaded));
-        setFetchState("done");
-      } else {
-        setFetchError(json.message ?? json.error ?? `HTTP ${res.status}`);
-        setFetchState("error");
-      }
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : "Network error");
-      setFetchState("error");
-    }
-    setTimeout(() => setFetchState("idle"), 4000);
   };
 
   const hasFrozenMethods = data?.zones?.some((zone) =>
@@ -209,33 +139,6 @@ export default function PostcodeCheckerPage() {
         )}
       </AnimatePresence>
 
-      {/* Data status + refresh */}
-      <div className="mt-10 flex items-center justify-between border-t border-slate-100 pt-4">
-        <DataStatusDot fetchedAt={lastFetchedAt} />
-        <div className="flex flex-col items-end gap-1">
-          <button
-            onClick={handleRefresh}
-            disabled={fetchState === "loading"}
-            className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium shadow-sm transition-all disabled:cursor-not-allowed ${
-              fetchState === "done" ? "border-green-200 bg-green-50 text-green-700"
-              : fetchState === "error" ? "border-red-200 bg-red-50 text-red-700"
-              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            {fetchState === "loading" && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />}
-            {fetchState === "done" && <CheckCircle className="h-3.5 w-3.5" />}
-            {fetchState === "error" && <AlertCircle className="h-3.5 w-3.5" />}
-            {fetchState === "idle" && <RefreshCw className="h-3.5 w-3.5" />}
-            <span>
-              {fetchState === "idle" && "Refresh data"}
-              {fetchState === "loading" && "Refreshing…"}
-              {fetchState === "done" && "Done"}
-              {fetchState === "error" && "Failed"}
-            </span>
-          </button>
-          {fetchError && <p className="max-w-[200px] text-right text-xs text-red-500">{fetchError}</p>}
-        </div>
-      </div>
     </div>
   );
 }

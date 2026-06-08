@@ -2,6 +2,7 @@ import { fetchPortalProducts } from "@/lib/woo-products";
 import Link from "next/link";
 import { Package, ChevronRight } from "lucide-react";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { ShippingRefreshButton } from "@/components/admin/ShippingRefreshButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin — Products" };
@@ -16,6 +17,15 @@ export default async function AdminProductsPage() {
       <p className="text-sm text-slate-500 mb-6">
         Select a product to upload and manage its downloadable images.
       </p>
+
+      {/* Shipping data refresh */}
+      <div className="mb-8 rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-slate-700 mb-0.5">Shipping Data</h2>
+        <p className="text-sm text-slate-400 mb-4">
+          Refresh the cached WooCommerce shipping zones used by the Postcode Checker.
+        </p>
+        <ShippingRefreshButton />
+      </div>
 
       <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
         {products.map((product) => (
