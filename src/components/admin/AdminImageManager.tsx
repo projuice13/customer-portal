@@ -5,6 +5,40 @@ import { upload } from "@vercel/blob/client";
 import { Upload, Trash2, GripVertical, ImageIcon } from "lucide-react";
 import type { ProductImageEntry } from "@/lib/product-images";
 
+const MAX_PX = 2000;
+const JPEG_QUALITY = 0.82;
+
+async function compressImage(file: File): Promise<{ blob: Blob; originalKb: number; compressedKb: number }> {
+  const originalKb = Math.round(file.size / 1024);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      if (width > MAX_PX || height > MAX_PX) {
+        if (width >= height) { height = Math.round((height / width) * MAX_PX); width = MAX_PX; }
+        else { width = Math.round((width / height) * MAX_PX); height = MAX_PX; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { reject(new Error("Canvas compression failed")); return; }
+          resolve({ blob, originalKb, compressedKb: Math.round(blob.size / 1024) });
+        },
+        "image/jpeg",
+        JPEG_QUALITY
+      );
+    };
+    img.onerror = reject;
+    img.src = objectUrl;
+  });
+}
+
 interface Props {
   slug: string;
   initialImages: ProductImageEntry[];
@@ -13,6 +47,7 @@ interface Props {
 export function AdminImageManager({ slug, initialImages }: Props) {
   const [images, setImages] = useState(initialImages);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -20,19 +55,28 @@ export function AdminImageManager({ slug, initialImages }: Props) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
     setError("");
+    setUploadStatus("");
     setUploading(true);
     try {
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadStatus(`Compressing ${i + 1}/${files.length}…`);
+        const { blob: compressed, originalKb, compressedKb } = await compressImage(file);
+        setUploadStatus(
+          `Uploading ${i + 1}/${files.length} — ${originalKb}KB → ${compressedKb}KB`
+        );
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
         const pathname = `products/${slug}/${Date.now()}-${safeName}`;
-        await upload(pathname, file, {
+        await upload(pathname, compressed, {
           access: "public",
           handleUploadUrl: `/api/admin/images/${slug}/upload-token`,
         });
       }
+      setUploadStatus("Refreshing…");
       const res = await fetch(`/api/admin/images/${slug}`);
       const data = await res.json();
       setImages(data.images);
+      setUploadStatus("");
     } catch (err) {
       setError(`Upload failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -71,7 +115,9 @@ export function AdminImageManager({ slug, initialImages }: Props) {
           <p className="text-sm font-medium text-slate-700">Click to upload images</p>
           <p className="text-xs text-slate-400 mt-0.5">JPG, PNG, WebP — multiple files supported</p>
         </div>
-        {uploading && <p className="text-xs text-teal-600 font-medium">Uploading…</p>}
+        {uploading && uploadStatus && (
+          <p className="text-xs text-teal-600 font-medium">{uploadStatus}</p>
+        )}
         <input
           ref={fileRef}
           type="file"
