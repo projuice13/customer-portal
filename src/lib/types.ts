@@ -46,6 +46,7 @@ export interface NavItem {
   comingSoon?: boolean;
   beta?: boolean;
   description?: string;
+  image?: string; // background image for home card
 }
 
 // ─── Ask Me Anything ─────────────────────────────────────────────────────────

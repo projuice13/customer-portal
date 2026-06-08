@@ -13,6 +13,7 @@ export const navItems: NavItem[] = [
     icon: "Package",
     protected: true,
     description: "Browse products, images, specs and downloads",
+    image: "/11.jpg",
   },
   {
     label: "Ask Me Anything",
@@ -20,17 +21,20 @@ export const navItems: NavItem[] = [
     icon: "MessageCircle",
     beta: true,
     description: "Ask a question about our products or services",
+    image: "/12.jpg",
   },
   {
     label: "Profit Calculator",
     href: "/profit-calculator",
     icon: "Calculator",
     description: "Calculate selling price, margin and profit",
+    image: "/13.png",
   },
   {
     label: "Postcode Checker",
     href: "/postcode-checker",
     icon: "MapPin",
     description: "Check which delivery options are available for a postcode",
+    image: "/14.jpg",
   },
 ];

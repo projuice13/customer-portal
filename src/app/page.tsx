@@ -38,6 +38,7 @@ export default function HomePage() {
                 protected={item.protected}
                 comingSoon={item.comingSoon}
                 beta={item.beta}
+                image={item.image}
               />
             ))}
         </div>
