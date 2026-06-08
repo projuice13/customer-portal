@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Redirects to the public Vercel Blob URL with a download filename header
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
@@ -8,14 +7,21 @@ export async function GET(request: NextRequest) {
 
   if (!url) return NextResponse.json({ error: "url is required" }, { status: 400 });
 
-  // Only allow Vercel Blob URLs
-  if (!url.includes("vercel-storage.com") && !url.includes("public.blob.vercel-storage.com")) {
+  if (!url.includes("vercel-storage.com")) {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
   }
 
-  return NextResponse.redirect(url, {
+  const res = await fetch(url);
+  if (!res.ok) return NextResponse.json({ error: "Failed to fetch image" }, { status: 502 });
+
+  const contentType = res.headers.get("content-type") ?? "image/jpeg";
+  const body = await res.arrayBuffer();
+
+  return new NextResponse(body, {
     headers: {
+      "Content-Type": contentType,
       "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "public, max-age=3600",
     },
   });
 }
