@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const ADMIN_COOKIE = "portal_admin_auth";
+const ADMIN_COOKIE = "portal_admin_auth";
 const COOKIE_MAX_AGE = 60 * 60 * 8; // 8 hours
 
 export async function POST(request: NextRequest) {
