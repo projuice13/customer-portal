@@ -34,6 +34,7 @@ interface LinkCardProps {
   image?: string;
   protected?: boolean;
   comingSoon?: boolean;
+  beta?: boolean;
 }
 
 export function LinkCard({
@@ -44,6 +45,7 @@ export function LinkCard({
   image = "/smoothie.jpg",
   protected: isProtected,
   comingSoon,
+  beta,
 }: LinkCardProps) {
   const Icon = iconMap[icon] ?? Package;
 
@@ -106,6 +108,11 @@ export function LinkCard({
           <p className="text-base font-semibold text-white">{title}</p>
           {isProtected && (
             <Lock className="h-3.5 w-3.5 text-white/70" aria-label="Password protected" />
+          )}
+          {beta && (
+            <span className="rounded-full bg-amber-400/90 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
+              Beta
+            </span>
           )}
         </div>
         <p className="text-sm text-white/80">{description}</p>

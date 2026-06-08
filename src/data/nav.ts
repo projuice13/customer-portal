@@ -18,6 +18,7 @@ export const navItems: NavItem[] = [
     label: "Ask Me Anything",
     href: "/ask",
     icon: "MessageCircle",
+    beta: true,
     description: "Ask a question about our products or services",
   },
   {

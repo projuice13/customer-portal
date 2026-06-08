@@ -58,6 +58,11 @@ export function TopNav() {
                   {item.protected && (
                     <Lock className="h-3 w-3 opacity-60" aria-label="Password protected" />
                   )}
+                  {item.beta && (
+                    <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-950">
+                      Beta
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -103,10 +108,17 @@ export function TopNav() {
                   )}
                   aria-current={active ? "page" : undefined}
                 >
-                  {item.label}
-                  {item.protected && (
-                    <Lock className="h-3.5 w-3.5 opacity-50" aria-label="Password protected" />
-                  )}
+                  <span className="flex items-center gap-1.5">
+                    {item.label}
+                    {item.protected && (
+                      <Lock className="h-3.5 w-3.5 opacity-50" aria-label="Password protected" />
+                    )}
+                    {item.beta && (
+                      <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-950">
+                        Beta
+                      </span>
+                    )}
+                  </span>
                 </Link>
               );
             })}

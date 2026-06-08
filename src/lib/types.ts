@@ -44,6 +44,7 @@ export interface NavItem {
   icon: string; // Lucide icon name
   protected?: boolean; // requires password
   comingSoon?: boolean;
+  beta?: boolean;
   description?: string;
 }
 
