@@ -7,10 +7,14 @@ function isAuthed(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-  if (!isAuthed(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { slug } = await params;
   const body = (await request.json()) as HandleUploadBody;
+
+  // Only block the token generation phase — the upload-completed callback
+  // comes from Vercel's servers and won't carry the auth cookie.
+  if (body.type === "blob.generate-client-token" && !isAuthed(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const jsonResponse = await handleUpload({
@@ -22,8 +26,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         tokenPayload: JSON.stringify({ slug, pathname }),
       }),
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        const { slug: s, pathname } = JSON.parse(tokenPayload ?? "{}");
-        const filename = pathname.split("/").pop() ?? blob.pathname.split("/").pop() ?? "image";
+        const { slug: s } = JSON.parse(tokenPayload ?? "{}");
+        const filename = blob.pathname.split("/").pop() ?? "image";
         await addProductImage(s, {
           url: blob.url,
           pathname: blob.pathname,
