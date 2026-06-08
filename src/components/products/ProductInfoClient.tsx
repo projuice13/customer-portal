@@ -20,8 +20,16 @@ export function ProductInfoClient({ products, categories }: ProductInfoClientPro
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
 
   const selectedSlug = searchParams.get("product") ?? null;
+
+  // Clear loading state once the URL has caught up to the pending slug
+  useEffect(() => {
+    if (loadingSlug && loadingSlug === selectedSlug) {
+      setLoadingSlug(null);
+    }
+  }, [selectedSlug, loadingSlug]);
 
   const selectedProduct = useMemo(
     () => products.find((p) => p.slug === selectedSlug) ?? null,
@@ -45,8 +53,10 @@ export function ProductInfoClient({ products, categories }: ProductInfoClientPro
       const params = new URLSearchParams(searchParams.toString());
       if (params.get("product") === slug) {
         params.delete("product");
+        setLoadingSlug(null);
       } else {
         params.set("product", slug);
+        setLoadingSlug(slug);
       }
       router.replace(`/product-info?${params.toString()}`, { scroll: false });
     },
@@ -112,6 +122,7 @@ export function ProductInfoClient({ products, categories }: ProductInfoClientPro
         >
           <ProductDetailPanel
             product={selectedProduct}
+            loading={!!loadingSlug}
             className="lg:max-h-[calc(100vh-160px)] lg:sticky lg:top-[80px]"
           />
         </div>

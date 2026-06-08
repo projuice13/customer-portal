@@ -26,10 +26,11 @@ const typeLabels: Record<string, string> = {
 
 interface ProductDetailPanelProps {
   product: Product | null;
+  loading?: boolean;
   className?: string;
 }
 
-export function ProductDetailPanel({ product, className }: ProductDetailPanelProps) {
+export function ProductDetailPanel({ product, loading = false, className }: ProductDetailPanelProps) {
   const [pdfData, setPdfData] = useState<PdfData | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
 
@@ -82,9 +83,15 @@ export function ProductDetailPanel({ product, className }: ProductDetailPanelPro
 
   return (
     <article
-      className={cn("overflow-y-auto scrollbar-thin", className)}
+      className={cn("relative overflow-y-auto scrollbar-thin", className)}
       aria-label={`Product details: ${product.title}`}
     >
+      {loading && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl bg-white/80 backdrop-blur-sm">
+          <div className="h-7 w-7 rounded-full border-2 border-slate-200 border-t-teal-500 animate-spin" />
+          <p className="text-xs text-slate-400">Loading product…</p>
+        </div>
+      )}
       <div className="p-6 space-y-6">
         {/* Header */}
         <div>
