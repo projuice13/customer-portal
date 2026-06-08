@@ -9,17 +9,18 @@ interface CalculatorSummaryProps {
   rows: CalculatorComponent[];
 }
 
+// Colours for cost slices. Reserve all greens for profit only.
 const SLICE_COLOURS = [
-  "#0d9488", // teal-600
-  "#0891b2", // cyan-600
   "#7c3aed", // violet-600
+  "#0891b2", // cyan-600
   "#db2777", // pink-600
   "#ea580c", // orange-600
   "#ca8a04", // yellow-600
-  "#65a30d", // lime-600
   "#0284c7", // sky-600
   "#9333ea", // purple-600
   "#dc2626", // red-600
+  "#e11d48", // rose-600
+  "#475569", // slate-600
 ];
 
 export function CalculatorSummary({ result, rows }: CalculatorSummaryProps) {
