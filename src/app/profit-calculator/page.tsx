@@ -130,7 +130,7 @@ export default function ProfitCalculatorPage() {
 
       <div className="flex flex-col lg:flex-row gap-5">
         {/* ── Cost rows panel ──────────────────────────────────────────── */}
-        <div className="flex-1">
+        <div className="lg:w-1/2 flex-shrink-0">
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
             {/* Table header */}
             <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 bg-slate-50">
@@ -205,8 +205,8 @@ export default function ProfitCalculatorPage() {
         </div>
 
         {/* ── Summary panel ────────────────────────────────────────────── */}
-        <div className="lg:w-72 flex-shrink-0">
-          <CalculatorSummary result={result} />
+        <div className="lg:w-1/2 flex-shrink-0">
+          <CalculatorSummary result={result} rows={rows} />
 
           {/* Formula reference */}
           <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 px-3.5 py-3 space-y-1.5">
