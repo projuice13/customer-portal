@@ -27,7 +27,9 @@ export async function searchWebsite(
     .slice(0, 6)
     .map(({ item, score }) => ({
       title: item.title,
-      content: item.content.substring(0, SNIPPET_LENGTH),
+      // Send full content for the directly-scraped key pages (delivery info, FAQ, etc.)
+      // so accordion content towards the end of the page isn't lost.
+      content: item.fullContent ? item.content : item.content.substring(0, SNIPPET_LENGTH),
       source: item.type === "post" ? "Blog post" : "Website page",
       url: item.url,
       score,

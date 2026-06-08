@@ -11,6 +11,7 @@ export interface WpItem {
   url: string;
   type: "post" | "page";
   slug: string;
+  fullContent?: boolean; // if true, always send full content (no snippet)
 }
 
 // Pages worth including — Elementor-built pages return empty content via REST so we
@@ -161,6 +162,7 @@ export async function fetchWordPressContent(): Promise<WpItem[]> {
       url: scraped.url,
       type: "page",
       slug: scraped.slug,
+      fullContent: true,
     });
   }
 
