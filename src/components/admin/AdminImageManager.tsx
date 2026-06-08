@@ -57,22 +57,25 @@ export function AdminImageManager({ slug, initialImages }: Props) {
     setUploadStatus("");
     setUploading(true);
     try {
+      // Compress all files first
+      const compressed: { blob: Blob; safeName: string; originalKb: number; compressedKb: number }[] = [];
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
         setUploadStatus(`Compressing ${i + 1}/${files.length}…`);
-        const { blob: compressed, originalKb, compressedKb } = await compressImage(file);
-        setUploadStatus(
-          `Uploading ${i + 1}/${files.length} — ${originalKb}KB → ${compressedKb}KB`
-        );
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
-        const form = new FormData();
-        form.append("file", compressed, safeName);
-        const res = await fetch(`/api/admin/images/${slug}`, { method: "POST", body: form });
-        if (!res.ok) throw new Error((await res.json()).error ?? "Upload failed");
+        const { blob, originalKb, compressedKb } = await compressImage(files[i]);
+        const safeName = files[i].name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
+        compressed.push({ blob, safeName, originalKb, compressedKb });
       }
+
+      // Send all in one request — server uploads to Blob and updates index once
+      setUploadStatus(`Uploading ${files.length} image${files.length !== 1 ? "s" : ""}…`);
+      const form = new FormData();
+      compressed.forEach(({ blob, safeName }) => form.append("file", blob, safeName));
+      const res = await fetch(`/api/admin/images/${slug}`, { method: "POST", body: form });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Upload failed");
+
       setUploadStatus("Refreshing…");
-      const res = await fetch(`/api/admin/images/${slug}`);
-      const data = await res.json();
+      const listRes = await fetch(`/api/admin/images/${slug}`);
+      const data = await listRes.json();
       setImages(data.images);
       setUploadStatus("");
     } catch (err) {

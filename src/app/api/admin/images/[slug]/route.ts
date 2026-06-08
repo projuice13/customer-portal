@@ -15,31 +15,39 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   return NextResponse.json({ images });
 }
 
-// POST — upload a new image
+// POST — upload one or more images, then do a single index update
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   if (!isAuthed(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { slug } = await params;
 
   const formData = await request.formData();
-  const file = formData.get("file") as File | null;
-  const label = (formData.get("label") as string | null) ?? undefined;
+  const files = formData.getAll("file") as File[];
 
-  if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
-
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
-  const pathname = `products/${slug}/${Date.now()}-${safeName}`;
+  if (!files.length) return NextResponse.json({ error: "No files provided" }, { status: 400 });
 
   try {
-    const blob = await put(pathname, file, { access: "public", addRandomSuffix: true });
+    // Upload all files to Blob in parallel
+    const uploaded = await Promise.all(
+      files.map(async (file) => {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
+        const pathname = `products/${slug}/${Date.now()}-${safeName}`;
+        const blob = await put(pathname, file, { access: "public", addRandomSuffix: true });
+        return { url: blob.url, pathname: blob.pathname, filename: file.name };
+      })
+    );
 
-    await addProductImage(slug, {
-      url: blob.url,
-      pathname: blob.pathname,
-      filename: file.name,
-      label,
-    });
+    // Read index once, append all new entries, save once
+    const { getImageIndex, saveProductImages } = await import("@/lib/product-images");
+    const index = await getImageIndex();
+    const existing = index[slug] ?? [];
+    const maxOrder = existing.length > 0 ? Math.max(...existing.map((e) => e.order)) : -1;
+    const newEntries = uploaded.map((u, i) => ({ ...u, order: maxOrder + 1 + i }));
+    index[slug] = [...existing, ...newEntries];
 
-    return NextResponse.json({ success: true, url: blob.url });
+    const { blobPutText } = await import("@/lib/blob");
+    await blobPutText("products/index.json", JSON.stringify(index, null, 2));
+
+    return NextResponse.json({ success: true, uploaded: uploaded.length });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });
