@@ -32,13 +32,19 @@ export async function getProductImages(slug: string): Promise<ProductImageEntry[
       );
       const res = await fetch(`${sorted[0].url}?t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
-        const data = (await res.json()) as ProductImageEntry[];
-        return data.slice().sort((a, b) => a.order - b.order);
+        const data = (await res.json()) as unknown;
+        if (Array.isArray(data)) {
+          return [...data as ProductImageEntry[]].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        }
       }
     }
     // Legacy fallback — first read for any slug uses old global index
     const legacy = await getLegacyIndex();
-    return (legacy[slug] ?? []).slice().sort((a, b) => a.order - b.order);
+    const slugData = legacy[slug];
+    if (Array.isArray(slugData)) {
+      return [...slugData].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+    return [];
   } catch {
     return [];
   }
