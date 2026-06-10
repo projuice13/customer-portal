@@ -1,7 +1,9 @@
 import { fetchPortalProducts } from "@/lib/woo-products";
 import { getProductImages } from "@/lib/product-images";
+import { getDayCard } from "@/lib/day-cards";
 import { notFound } from "next/navigation";
 import { AdminImageManager } from "@/components/admin/AdminImageManager";
+import { DayCardUploader } from "@/components/admin/DayCardUploader";
 import { AdminNav } from "@/components/admin/AdminNav";
 
 export const dynamic = "force-dynamic";
@@ -13,10 +15,11 @@ export default async function AdminProductImagesPage({ params }: { params: Promi
   if (!product) notFound();
 
   let images: Awaited<ReturnType<typeof getProductImages>> = [];
+  let dayCard: Awaited<ReturnType<typeof getDayCard>> = null;
   try {
-    images = await getProductImages(slug);
+    [images, dayCard] = await Promise.all([getProductImages(slug), getDayCard(slug)]);
   } catch {
-    // R2 not configured — start empty
+    // Blob not configured — start empty
   }
 
   return (
@@ -26,7 +29,11 @@ export default async function AdminProductImagesPage({ params }: { params: Promi
         <h1 className="text-xl font-semibold text-slate-900">{product.title}</h1>
         <p className="text-sm text-slate-500">{product.category} · {slug}</p>
       </div>
-      <AdminImageManager slug={slug} initialImages={images} />
+
+      <div className="space-y-5">
+        <DayCardUploader slug={slug} initialCard={dayCard} />
+        <AdminImageManager slug={slug} initialImages={images} />
+      </div>
     </div>
   );
 }

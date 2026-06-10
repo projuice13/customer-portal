@@ -6,6 +6,7 @@ import { AllergenBadgeList } from "./AllergenBadgeList";
 import { IngredientsList } from "./IngredientsList";
 import { ResourceButton } from "./ResourceButton";
 import { ProductImageThumbnails } from "./ProductImageThumbnails";
+import { DayCardButton } from "./DayCardButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -108,7 +109,7 @@ export function ProductDetailPanel({ product, loading = false, className }: Prod
         <ProductImageThumbnails slug={product.slug} />
 
         {/* Downloads & assets */}
-        {product.resources.length > 0 && (
+        {(product.resources.length > 0) && (
           <section aria-labelledby="resources-heading">
             <h3 id="resources-heading" className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5">
               Downloads & Assets
@@ -117,7 +118,15 @@ export function ProductDetailPanel({ product, loading = false, className }: Prod
               {product.resources.map((resource) => (
                 <ResourceButton key={resource.id} resource={resource} />
               ))}
+              <DayCardButton slug={product.slug} />
             </div>
+          </section>
+        )}
+
+        {/* If there are no resources but a day card exists, still show it */}
+        {product.resources.length === 0 && (
+          <section aria-label="Day card">
+            <DayCardButton slug={product.slug} />
           </section>
         )}
 
