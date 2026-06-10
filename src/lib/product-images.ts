@@ -1,10 +1,15 @@
 /**
- * Product image index — stored as versioned JSON files under products/index-versions/.
- * Each save writes a new file; reads pick the newest via list() which is strongly
- * consistent. This avoids CDN caching issues entirely.
+ * Per-product image storage. Each product slug gets its own versioned JSON
+ * file at products/per-slug/{slug}/v-{timestamp}.json. Reads always pick the
+ * newest version via list() (strongly consistent — no CDN cache). Old
+ * versions are pruned, keeping the 5 most recent for safety.
+ *
+ * This isolates each product's index from every other product's index,
+ * eliminating cross-slug race conditions entirely.
  */
 
-import { blobPutVersionedJson, blobFindLatestJson, blobCleanupVersions, blobFindUrl } from "./blob";
+import { put, list, del } from "@vercel/blob";
+import { blobFindLatestJson, blobFindUrl } from "./blob";
 
 export interface ProductImageEntry {
   url: string;
@@ -14,53 +19,86 @@ export interface ProductImageEntry {
   order: number;
 }
 
-type ImageIndex = Record<string, ProductImageEntry[]>;
+const PREFIX = "products/per-slug";
 
-const INDEX_PREFIX = "products/index-versions";
+// ─── Read ────────────────────────────────────────────────────────────────────
 
-export async function getImageIndex(): Promise<ImageIndex> {
+export async function getProductImages(slug: string): Promise<ProductImageEntry[]> {
   try {
-    const data = await blobFindLatestJson<ImageIndex>(INDEX_PREFIX);
-    if (data) return data;
-    // One-time migration: fall back to the legacy products/index.json
-    const legacyUrl = await blobFindUrl("products/index.json");
-    if (legacyUrl) {
-      const res = await fetch(`${legacyUrl}?t=${Date.now()}`, { cache: "no-store" });
-      if (res.ok) return (await res.json()) as ImageIndex;
+    const { blobs } = await list({ prefix: `${PREFIX}/${slug}/`, limit: 100 });
+    if (blobs.length > 0) {
+      const sorted = [...blobs].sort(
+        (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+      );
+      const res = await fetch(`${sorted[0].url}?t=${Date.now()}`, { cache: "no-store" });
+      if (res.ok) {
+        const data = (await res.json()) as ProductImageEntry[];
+        return data.slice().sort((a, b) => a.order - b.order);
+      }
     }
-    return {};
+    // Legacy fallback — first read for any slug uses old global index
+    const legacy = await getLegacyIndex();
+    return (legacy[slug] ?? []).slice().sort((a, b) => a.order - b.order);
   } catch {
-    return {};
+    return [];
   }
 }
 
-async function saveIndex(index: ImageIndex) {
-  await blobPutVersionedJson(INDEX_PREFIX, JSON.stringify(index, null, 2));
-  // Best-effort cleanup of older versions (keeps 5 most recent for safety)
-  blobCleanupVersions(INDEX_PREFIX, 5).catch(() => {});
-}
-
-export async function getProductImages(slug: string): Promise<ProductImageEntry[]> {
-  const index = await getImageIndex();
-  return (index[slug] ?? []).sort((a, b) => a.order - b.order);
-}
+// ─── Write ───────────────────────────────────────────────────────────────────
 
 export async function saveProductImages(slug: string, entries: ProductImageEntry[]) {
-  const index = await getImageIndex();
-  index[slug] = entries;
-  await saveIndex(index);
+  const pathname = `${PREFIX}/${slug}/v-${Date.now()}.json`;
+  await put(pathname, JSON.stringify(entries, null, 2), {
+    access: "public",
+    contentType: "application/json",
+    addRandomSuffix: true,
+    cacheControlMaxAge: 0,
+  });
+  cleanupSlugVersions(slug, 5).catch(() => {});
 }
 
 export async function addProductImage(slug: string, entry: Omit<ProductImageEntry, "order">) {
-  const index = await getImageIndex();
-  const existing = index[slug] ?? [];
+  const existing = await getProductImages(slug);
   const order = existing.length > 0 ? Math.max(...existing.map((e) => e.order)) + 1 : 0;
-  index[slug] = [...existing, { ...entry, order }];
-  await saveIndex(index);
+  await saveProductImages(slug, [...existing, { ...entry, order }]);
 }
 
 export async function removeProductImage(slug: string, url: string) {
-  const index = await getImageIndex();
-  index[slug] = (index[slug] ?? []).filter((e) => e.url !== url);
-  await saveIndex(index);
+  const existing = await getProductImages(slug);
+  await saveProductImages(slug, existing.filter((e) => e.url !== url));
+}
+
+// ─── Internal helpers ────────────────────────────────────────────────────────
+
+async function cleanupSlugVersions(slug: string, keep: number) {
+  const { blobs } = await list({ prefix: `${PREFIX}/${slug}/`, limit: 100 });
+  if (blobs.length <= keep) return;
+  const sorted = [...blobs].sort(
+    (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+  );
+  const toDelete = sorted.slice(keep);
+  await Promise.all(toDelete.map((b) => del(b.url).catch(() => {})));
+}
+
+/**
+ * One-time legacy lookup. Used only when the per-slug folder is empty, so the
+ * very first read after this code deploys still finds the user's existing data.
+ */
+async function getLegacyIndex(): Promise<Record<string, ProductImageEntry[]>> {
+  // Try the previous versioned global index first
+  const data = await blobFindLatestJson<Record<string, ProductImageEntry[]>>(
+    "products/index-versions"
+  );
+  if (data) return data;
+  // Then fall back to the original global file
+  const legacyUrl = await blobFindUrl("products/index.json");
+  if (legacyUrl) {
+    try {
+      const res = await fetch(`${legacyUrl}?t=${Date.now()}`, { cache: "no-store" });
+      if (res.ok) return await res.json();
+    } catch {
+      /* ignore */
+    }
+  }
+  return {};
 }

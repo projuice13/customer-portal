@@ -6,7 +6,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { slug } = await params;
   try {
     const images = await getProductImages(slug);
-    return NextResponse.json({ images }, { headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=300" } });
+    return NextResponse.json({ images }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ images: [] });
   }
