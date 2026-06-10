@@ -1,9 +1,9 @@
 /**
- * Per-product "Of the day" PDF cards.
- * Index stored as products/day-cards.json in Vercel Blob.
+ * Per-product "Of the day" PDF cards — stored as versioned JSON under
+ * products/day-card-versions/.
  */
 
-import { blobPutText, blobFindUrl } from "./blob";
+import { blobPutVersionedJson, blobFindLatestJson, blobCleanupVersions } from "./blob";
 
 export interface DayCardEntry {
   url: string;
@@ -13,23 +13,20 @@ export interface DayCardEntry {
 
 type DayCardIndex = Record<string, DayCardEntry>;
 
-const INDEX_PATHNAME = "products/day-cards.json";
+const INDEX_PREFIX = "products/day-card-versions";
 
 export async function getDayCardIndex(): Promise<DayCardIndex> {
   try {
-    const indexUrl = await blobFindUrl(INDEX_PATHNAME);
-    if (!indexUrl) return {};
-    const bustUrl = `${indexUrl}?t=${Date.now()}`;
-    const res = await fetch(bustUrl, { cache: "no-store" });
-    if (!res.ok) return {};
-    return (await res.json()) as DayCardIndex;
+    const data = await blobFindLatestJson<DayCardIndex>(INDEX_PREFIX);
+    return data ?? {};
   } catch {
     return {};
   }
 }
 
 async function saveIndex(index: DayCardIndex) {
-  await blobPutText(INDEX_PATHNAME, JSON.stringify(index, null, 2));
+  await blobPutVersionedJson(INDEX_PREFIX, JSON.stringify(index, null, 2));
+  blobCleanupVersions(INDEX_PREFIX, 5).catch(() => {});
 }
 
 export async function getDayCard(slug: string): Promise<DayCardEntry | null> {

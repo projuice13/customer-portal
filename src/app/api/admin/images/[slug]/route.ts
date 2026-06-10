@@ -36,39 +36,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       })
     );
 
-    // Read index once, append all new entries, save once.
-    // Wrapped in a verification loop: after writing, re-read and confirm our
-    // entries are present. If not (eventual consistency / cache lag), retry.
-    const { getImageIndex } = await import("@/lib/product-images");
-    const { blobPutText } = await import("@/lib/blob");
-
-    let finalImages: typeof uploaded extends infer T ? (T & { order: number })[] : never;
-    let attempt = 0;
-    const newPathnames = new Set(uploaded.map((u) => u.pathname));
-
-    while (true) {
-      attempt++;
-      const index = await getImageIndex();
-      const existing = (index[slug] ?? []).filter((e) => !newPathnames.has(e.pathname));
-      const maxOrder = existing.length > 0 ? Math.max(...existing.map((e) => e.order)) : -1;
-      const newEntries = uploaded.map((u, i) => ({ ...u, order: maxOrder + 1 + i }));
-      index[slug] = [...existing, ...newEntries];
-
-      await blobPutText("products/index.json", JSON.stringify(index, null, 2));
-
-      // Brief pause then verify
-      await new Promise((r) => setTimeout(r, 500));
-      const verifyIndex = await getImageIndex();
-      const verifyEntries = verifyIndex[slug] ?? [];
-      const allPresent = uploaded.every((u) =>
-        verifyEntries.some((e) => e.pathname === u.pathname)
-      );
-
-      if (allPresent || attempt >= 3) {
-        finalImages = index[slug] as never;
-        break;
-      }
-    }
+    // Read index once, append all new entries, save once (versioned write).
+    const { getImageIndex, saveProductImages } = await import("@/lib/product-images");
+    const index = await getImageIndex();
+    const existing = index[slug] ?? [];
+    const maxOrder = existing.length > 0 ? Math.max(...existing.map((e) => e.order)) : -1;
+    const newEntries = uploaded.map((u, i) => ({ ...u, order: maxOrder + 1 + i }));
+    const finalImages = [...existing, ...newEntries];
+    await saveProductImages(slug, finalImages);
 
     return NextResponse.json({ success: true, uploaded: uploaded.length, images: finalImages });
   } catch (err) {

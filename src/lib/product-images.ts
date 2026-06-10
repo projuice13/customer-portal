@@ -1,38 +1,43 @@
 /**
- * Product image index stored as products/index.json in Vercel Blob.
- * Shape: { [slug]: ProductImageEntry[] }
+ * Product image index — stored as versioned JSON files under products/index-versions/.
+ * Each save writes a new file; reads pick the newest via list() which is strongly
+ * consistent. This avoids CDN caching issues entirely.
  */
 
-import { blobPutText, blobFindUrl } from "./blob";
+import { blobPutVersionedJson, blobFindLatestJson, blobCleanupVersions, blobFindUrl } from "./blob";
 
 export interface ProductImageEntry {
-  url: string;      // public Vercel Blob URL
-  pathname: string; // blob pathname, used for deletion
-  filename: string; // original filename, used as download name
+  url: string;
+  pathname: string;
+  filename: string;
   label?: string;
   order: number;
 }
 
 type ImageIndex = Record<string, ProductImageEntry[]>;
 
-const INDEX_PATHNAME = "products/index.json";
+const INDEX_PREFIX = "products/index-versions";
 
 export async function getImageIndex(): Promise<ImageIndex> {
   try {
-    const indexUrl = await blobFindUrl(INDEX_PATHNAME);
-    if (!indexUrl) return {};
-    // Append timestamp to bypass CDN cache on every read
-    const bustUrl = `${indexUrl}?t=${Date.now()}`;
-    const res = await fetch(bustUrl, { cache: "no-store" });
-    if (!res.ok) return {};
-    return await res.json() as ImageIndex;
+    const data = await blobFindLatestJson<ImageIndex>(INDEX_PREFIX);
+    if (data) return data;
+    // One-time migration: fall back to the legacy products/index.json
+    const legacyUrl = await blobFindUrl("products/index.json");
+    if (legacyUrl) {
+      const res = await fetch(`${legacyUrl}?t=${Date.now()}`, { cache: "no-store" });
+      if (res.ok) return (await res.json()) as ImageIndex;
+    }
+    return {};
   } catch {
     return {};
   }
 }
 
 async function saveIndex(index: ImageIndex) {
-  await blobPutText(INDEX_PATHNAME, JSON.stringify(index, null, 2));
+  await blobPutVersionedJson(INDEX_PREFIX, JSON.stringify(index, null, 2));
+  // Best-effort cleanup of older versions (keeps 5 most recent for safety)
+  blobCleanupVersions(INDEX_PREFIX, 5).catch(() => {});
 }
 
 export async function getProductImages(slug: string): Promise<ProductImageEntry[]> {
