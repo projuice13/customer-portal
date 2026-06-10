@@ -7,6 +7,7 @@ import { SearchBar } from "@/components/ui/SearchBar";
 import { ProductFilterBar } from "@/components/products/ProductFilterBar";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { ProductDetailPanel } from "@/components/products/ProductDetailPanel";
+import { PromoMaterialSection } from "@/components/products/PromoMaterialSection";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 interface ProductInfoClientProps {
@@ -127,6 +128,9 @@ export function ProductInfoClient({ products, categories }: ProductInfoClientPro
           />
         </div>
       </div>
+
+      {/* Promotional material section */}
+      <PromoMaterialSection />
     </div>
   );
 }
