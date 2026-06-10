@@ -23,7 +23,7 @@ export function DayCardButton({ slug }: { slug: string }) {
     <ResourceButton
       resource={{
         id: "day-card",
-        type: "day-card",
+        type: "spec-sheet", // reuse spec-sheet styling for consistency
         label: "Of the Day Card",
         url: card.url,
         fileType: "PDF",
