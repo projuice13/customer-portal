@@ -135,7 +135,7 @@ export async function fetchPortalProducts(): Promise<Product[]> {
         category: String(id),
         per_page: "100",
         status: "publish",
-      }, 600) // cache 10 minutes
+      }, 3600) // cache 1 hour
     )
   );
 

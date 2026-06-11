@@ -4,7 +4,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <TopNav />
-      <main id="main-content" className="flex-1 pt-8">
+      <main id="main-content" className="flex-1 pt-8 pb-20">
         {children}
       </main>
     </div>
