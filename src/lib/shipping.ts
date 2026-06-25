@@ -77,13 +77,21 @@ export const getCachedZoneData = unstable_cache(fetchAllZoneData, ["shipping-zon
   revalidate: false,
 });
 
-export async function resolveLocality(postcode: string): Promise<string | undefined> {
+export interface Locality {
+  council?: string;
+  region?: string;
+}
+
+export async function resolveLocality(postcode: string): Promise<Locality | undefined> {
   try {
     const clean = postcode.replace(/\s+/g, "");
     const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(clean)}`);
     if (!res.ok) return undefined;
     const json = (await res.json()) as { result?: { admin_district?: string; region?: string } };
-    return json.result?.admin_district ?? json.result?.region ?? undefined;
+    const council = json.result?.admin_district;
+    const region = json.result?.region;
+    if (!council && !region) return undefined;
+    return { council, region };
   } catch {
     return undefined;
   }

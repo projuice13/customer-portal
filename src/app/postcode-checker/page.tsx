@@ -25,6 +25,8 @@ interface ShippingZone {
 interface ShippingResponse {
   postcode: string;
   locality?: string;
+  council?: string;
+  region?: string;
   has_results: boolean;
   zones: ShippingZone[];
   fetched_at?: string;
@@ -127,7 +129,12 @@ export default function PostcodeCheckerPage() {
         {showResults && (
           <motion.div key="results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <div className="mb-4 flex flex-wrap items-center gap-2">
-              {data?.locality && <span className="text-sm font-medium text-slate-700">{data.locality}</span>}
+              {data?.council && <span className="text-sm font-medium text-slate-700">{data.council}</span>}
+              {data?.region && (
+                <span className="rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500 border border-slate-200">
+                  {data.region}
+                </span>
+              )}
               <span className="rounded-full bg-slate-100 px-3 py-1 font-mono text-xs font-medium text-slate-600">{data?.postcode}</span>
               {data?.postcode && (
                 <a

@@ -45,7 +45,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       postcode: formattedPostcode,
-      ...(locality ? { locality } : {}),
+      // Keep `locality` for backwards compatibility (council if present, else region)
+      ...(locality ? { locality: locality.council ?? locality.region } : {}),
+      ...(locality?.council ? { council: locality.council } : {}),
+      ...(locality?.region ? { region: locality.region } : {}),
       zones: resultZones.map(({ id, name, methods }) => ({ id, name, methods })),
       has_results: resultZones.length > 0,
       fetched_at: fetchedAt,
