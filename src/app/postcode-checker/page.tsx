@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, AlertCircle, PackageX } from "lucide-react";
+import { Search, AlertCircle, PackageX, MapPin } from "lucide-react";
 import { ShippingZoneSection } from "@/components/postcode/ShippingZoneSection";
 import type { ShippingMethod } from "@/components/postcode/ShippingMethodCard";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -126,9 +126,20 @@ export default function PostcodeCheckerPage() {
 
         {showResults && (
           <motion.div key="results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-            <div className="mb-4 flex items-center gap-2">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
               {data?.locality && <span className="text-sm font-medium text-slate-700">{data.locality}</span>}
               <span className="rounded-full bg-slate-100 px-3 py-1 font-mono text-xs font-medium text-slate-600">{data?.postcode}</span>
+              {data?.postcode && (
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.postcode)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:border-teal-300 hover:text-teal-700 transition-colors"
+                >
+                  <MapPin className="h-3 w-3" aria-hidden="true" />
+                  View on Google Maps
+                </a>
+              )}
             </div>
             <div className="flex flex-col gap-4">
               {data?.zones.map((zone, i) => (
