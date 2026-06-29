@@ -7,7 +7,7 @@ export const calculatorPresets: CalculatorPreset[] = [
   {
     id: "smoothie",
     name: "Smoothie",
-    defaultSellingPrice: 450, // £4.50
+    defaultSellingPrice: 495, // £4.95
     components: [
       { id: cid(), label: "Smoothie sachet / mix", cost: 89, editable: false, removable: false },
       { id: cid(), label: "Juice (200ml)", cost: 34, editable: false, removable: true },
@@ -19,7 +19,7 @@ export const calculatorPresets: CalculatorPreset[] = [
   {
     id: "shake",
     name: "Milkshake",
-    defaultSellingPrice: 395, // £3.95
+    defaultSellingPrice: 495, // £4.95
     components: [
       { id: cid(), label: "Shake Pot", cost: 117, editable: false, removable: false },
       { id: cid(), label: "Milk", cost: 14, editable: false, removable: false },
