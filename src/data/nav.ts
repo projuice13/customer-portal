@@ -16,14 +16,6 @@ export const navItems: NavItem[] = [
     image: "/11.jpg",
   },
   {
-    label: "Ask Me Anything",
-    href: "/ask",
-    icon: "MessageCircle",
-    beta: true,
-    description: "Ask a question about our products or services",
-    image: "/13.png",
-  },
-  {
     label: "Profit Calculator",
     href: "/profit-calculator",
     icon: "Calculator",
