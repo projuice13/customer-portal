@@ -117,11 +117,30 @@ export default function PostcodeCheckerPage() {
 
         {showNoResults && (
           <motion.div key="no-results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-            className="flex flex-col items-center gap-3 rounded-lg border-2 border-dashed border-slate-200 py-12 text-center">
+            className="flex flex-col items-center gap-3 rounded-lg border-2 border-dashed border-slate-200 py-12 text-center px-4">
             <PackageX className="h-8 w-8 text-slate-300" />
             <div>
               <p className="font-medium text-slate-700">No frozen shipping methods found</p>
-              <p className="mt-1 text-sm text-slate-500">{data?.postcode}</p>
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+                {data?.council && <span className="text-sm font-medium text-slate-600">{data.council}</span>}
+                {data?.region && (
+                  <span className="rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500 border border-slate-200">
+                    {data.region}
+                  </span>
+                )}
+                <span className="rounded-full bg-slate-100 px-3 py-1 font-mono text-xs font-medium text-slate-600">{data?.postcode}</span>
+              </div>
+              {data?.postcode && (
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.postcode)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:border-teal-300 hover:text-teal-700 transition-colors"
+                >
+                  <MapPin className="h-3 w-3" aria-hidden="true" />
+                  View on Google Maps
+                </a>
+              )}
             </div>
           </motion.div>
         )}
