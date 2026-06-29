@@ -128,6 +128,13 @@ export default function ProfitCalculatorPage() {
         </div>
       </div>
 
+      {/* Smoothie-specific note */}
+      {activePresetId === "smoothie" && (
+        <p className="mb-4 rounded-lg border border-slate-100 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-500">
+          The default figures quoted are based on the costs associated with our Green Reviver smoothie.
+        </p>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-5">
         {/* ── Cost rows panel ──────────────────────────────────────────── */}
         <div className="lg:w-1/2 flex-shrink-0">

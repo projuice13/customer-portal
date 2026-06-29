@@ -9,11 +9,11 @@ export const calculatorPresets: CalculatorPreset[] = [
     name: "Smoothie",
     defaultSellingPrice: 450, // £4.50
     components: [
-      { id: cid(), label: "Smoothie sachet / mix", cost: 85, editable: false, removable: false },
-      { id: cid(), label: "Cup (12oz)", cost: 12, editable: false, removable: false },
-      { id: cid(), label: "Lid", cost: 4, editable: false, removable: false },
-      { id: cid(), label: "Straw", cost: 3, editable: false, removable: false },
-      { id: cid(), label: "Juice (200-250ml)", cost: 20, editable: false, removable: true },
+      { id: cid(), label: "Smoothie sachet / mix", cost: 89, editable: false, removable: false },
+      { id: cid(), label: "Juice (200ml)", cost: 34, editable: false, removable: true },
+      { id: cid(), label: "Cup", cost: 5, editable: false, removable: false },
+      { id: cid(), label: "Lid", cost: 3, editable: false, removable: false },
+      { id: cid(), label: "Straw", cost: 2, editable: false, removable: false },
     ],
   },
   {
