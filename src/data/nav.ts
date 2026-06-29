@@ -16,6 +16,12 @@ export const navItems: NavItem[] = [
     image: "/11.jpg",
   },
   {
+    label: "Allergen Information",
+    href: "/allergen-information",
+    icon: "AlertTriangle",
+    description: "Detailed allergen breakdown for every product",
+  },
+  {
     label: "Profit Calculator",
     href: "/profit-calculator",
     icon: "Calculator",

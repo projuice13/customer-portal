@@ -9,6 +9,7 @@ import {
   FileText,
   HelpCircle,
   MapPin,
+  AlertTriangle,
   Lock,
   ArrowRight,
 } from "lucide-react";
@@ -24,6 +25,7 @@ const iconMap: Record<string, React.ElementType> = {
   FileText,
   HelpCircle,
   MapPin,
+  AlertTriangle,
 };
 
 interface LinkCardProps {
