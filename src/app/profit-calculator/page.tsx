@@ -102,7 +102,7 @@ export default function ProfitCalculatorPage() {
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title="Profit Calculator"
-        description="Estimate your selling price, cost, margin and markup for drinks."
+        description="Estimate your selling price, cost, margin and markup for drinks. The below defaults are estimates and each cost should be updated to match specific costs incurred by your business."
         className="mb-6"
       />
 

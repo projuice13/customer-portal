@@ -21,12 +21,11 @@ export const calculatorPresets: CalculatorPreset[] = [
     name: "Milkshake",
     defaultSellingPrice: 395, // £3.95
     components: [
-      { id: cid(), label: "Shake powder", cost: 70, editable: false, removable: false },
-      { id: cid(), label: "Cup (16oz)", cost: 15, editable: false, removable: false },
-      { id: cid(), label: "Lid", cost: 4, editable: false, removable: false },
-      { id: cid(), label: "Straw", cost: 3, editable: false, removable: false },
-      { id: cid(), label: "Milk (300ml)", cost: 30, editable: false, removable: false },
-      { id: cid(), label: "Topping / extras", cost: 15, editable: false, removable: true },
+      { id: cid(), label: "Shake Pot", cost: 117, editable: false, removable: false },
+      { id: cid(), label: "Milk", cost: 14, editable: false, removable: false },
+      { id: cid(), label: "Cup", cost: 5, editable: false, removable: false },
+      { id: cid(), label: "Lid", cost: 3, editable: false, removable: false },
+      { id: cid(), label: "Straw", cost: 2, editable: false, removable: false },
     ],
   },
   {
