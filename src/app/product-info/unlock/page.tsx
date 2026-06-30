@@ -29,8 +29,10 @@ function UnlockForm() {
       });
 
       if (res.ok) {
-        router.push(redirectTo);
-        router.refresh();
+        // Hard navigation so the new auth cookie is included in the request
+        // and Next.js doesn't serve a stale cached redirect-to-unlock response.
+        window.location.href = redirectTo;
+        return;
       } else {
         setError("Incorrect password. Please try again.");
         setPassword("");

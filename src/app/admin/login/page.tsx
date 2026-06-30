@@ -23,8 +23,8 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ password }),
       });
       if (res.ok) {
-        router.push("/admin/products");
-        router.refresh();
+        window.location.href = "/admin/products";
+        return;
       } else {
         setError("Incorrect password. Please try again.");
         setPassword("");
