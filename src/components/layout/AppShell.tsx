@@ -1,4 +1,5 @@
 import { TopNav } from "./TopNav";
+import { Footer } from "./Footer";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -7,6 +8,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main id="main-content" className="flex-1 pt-8 pb-20">
         {children}
       </main>
+      <Footer />
     </div>
   );
 }
