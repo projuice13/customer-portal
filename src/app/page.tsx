@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Welcome */}
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-slate-900">
@@ -25,7 +25,7 @@ export default function HomePage() {
         <h2 id="sections-heading" className="sr-only">
           Portal sections
         </h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {navItems
             .filter((item) => item.href !== "/")
             .map((item) => (
